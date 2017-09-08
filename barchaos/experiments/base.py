@@ -13,7 +13,7 @@ import numpy as np
 import gala.dynamics as gd
 
 # Project
-from .log import logger
+from ..log import logger
 from .error import error_codes
 
 __all__ = ['Experiment']
