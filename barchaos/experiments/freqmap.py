@@ -1,11 +1,8 @@
 # coding: utf-8
 
 # Standard library
-import os
-from os import path
 
 # Third-party
-import h5py
 import numpy as np
 import gala.integrate as gi
 import gala.coordinates as gc
@@ -14,8 +11,9 @@ from gala.dynamics.util import estimate_dt_n_steps
 from superfreq import SuperFreq
 
 # Project
-from .config import ConfigNamespace, ConfigItem
-from .log import logger
+from ..config import ConfigNamespace, ConfigItem
+from ..log import logger
+from .base import Experiment
 
 __all__ = ['FreqMap']
 
@@ -39,7 +37,8 @@ class Config(ConfigNamespace):
         False, "Do frequency analysis on orbit in cartesian coordinates")
 
 
-class FreqMap(object):
+class FreqMap(Experiment):
+    # dtype of things output by this experiment
     cache_dtype = [
         ('freqs', 'f8', (2,3)), # three fundamental frequencies computed in 2 windows
         ('amps', 'f8', (2,3)), # amplitudes of frequencies in time series
@@ -47,34 +46,10 @@ class FreqMap(object):
         ('success', 'b1'), # did we succeed in computing the frequencies
         ('is_tube', 'b1'), # the orbit is a tube orbit
         ('dt', 'f8'), # timestep used for integration
-        ('nsteps', 'i8'), # number of steps integrated
-        ('error_code', 'i8') # if not successful, why did it fail? see below
+        ('nsteps', 'i8') # number of steps integrated
     ]
 
-    def __init__(self, cache_file, config_file=None, overwrite=False):
-
-        # Name of this experiment
-        self.name = self.__class__.__name__.lower()
-
-        # Validate the cache path
-        self.cache_file = path.abspath(cache_file)
-        if not path.exists(self.cache_file):
-            raise IOError("Cache file at '{0}' doesn't exist! You must first "
-                          "generate a cache file with the loaded grid of "
-                          "initial conditions.".format(self.cache_file))
-
-        # Load the configuraton settings for this experiment
-        config = Config()
-        if config_file is not None:
-            config.load(config_file)
-        self.config = config
-
-        # Load initial conditions
-        with h5py.File(self.cache_file) as f:
-            self.w0 = gd.PhaseSpacePosition.from_hdf5(f['w0'])
-
-        self.norbits = len(self.w0)
-        logger.info("Number of orbits: {0}".format(self.norbits))
+    config = Config()
 
     @classmethod
     def run(cls, w0, potential, **kwargs):
