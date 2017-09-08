@@ -51,3 +51,10 @@ def test_confignamespace(tmpdir):
         text = f.read()
 
     assert ('# ' + c3._chihei.description) in text
+
+    # test loading from file
+    c1.derp = 1914
+    assert c1.derp == 1914
+
+    c1.load(fn)
+    assert c1.derp == 20 # the value saved

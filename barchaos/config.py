@@ -157,22 +157,24 @@ class ConfigNamespace(object, metaclass=_ConfigNamespaceMeta):
         with open(filename, 'w') as f:
             yaml.round_trip_dump(dict_, f, default_flow_style=False)
 
-    def load(self, f):
+    def load(self, filename):
         """Load the configuration state from a given YAML file.
 
         Parameters
         ----------
-        f : str, file_like
-            Either a file path (as a string) or a file-like object with a
-            ``read()`` method.
+        filename : str
+            Path to the filename to save to.
         """
-        if hasattr(f, 'read'):
-            p_dict = yaml.load(f.read())
-        else:
-            with open(os.path.abspath(f)) as fil:
-                p_dict = yaml.load(fil.read())
 
-        ns = ConfigNamespace()
-        for k,v in p_dict.items():
-            setattr(ns, k, v)
-        return ns
+        with open(filename, 'r') as f:
+            dict_ = yaml.load(f, yaml.RoundTripLoader)
+
+        try:
+            dict_ = dict_[self.name]
+        except KeyError: # no config to load
+            return
+
+        for k in dict_:
+            setattr(self, k, dict_[k])
+
+
