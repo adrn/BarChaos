@@ -73,6 +73,41 @@ class Experiment(object):
                                  dtype=self._dtype,
                                  shape=(self.n_orbits,))
 
+    @property
+    def _empty_result(self):
+        """ Get an empty result array to load into the HDF5 cache file """
+        arr = []
+        for obj in self._dtype:
+            name = obj[0]
+            dt = obj[1]
+
+            if len(obj) > 2:
+                shape = obj[2]
+            else:
+                shape = ()
+
+            if name == 'error_code': # special-case this one
+                val = 0
+
+            elif 'b' in dt:
+                val = False
+
+            elif 'f' in dt:
+                val = np.full(shape, np.nan, dtype=dt)
+
+            elif 'i' in dt:
+                val = np.full(shape, 0, dtype=dt)
+
+            elif 's' in dt.lower():
+                val = ""
+
+            else:
+                raise ValueError("Unknown")
+
+            arr.append(val)
+
+        return np.array([tuple(arr)], dtype=self._dtype)
+
     # These methods enable the class to be used as a context manager. When used
     # in this mode, the class creates a temporary directory to write all of the
     # intermediate results to, and cleans them up at the end.
@@ -94,43 +129,40 @@ class Experiment(object):
             shutil.rmtree(self._tmpdir)
             self._tmpdir = None
 
+    # The functions that actually do the running:
 
-
+    @abstractclassmethod
+    def run(cls, w0, potential, **kwargs):
+        """ (classmethod) Run the experiment on a single orbit """
 
     def callback(self, tmpfile):
-        """
-        TODO:
+        """A function that operates on the name of the temporary cache file that
+        each worker writes. This function should run on the master process, and
+        will take the returned file and write it to the correct row in the cache
+        file. The temp. cache file is a pickle containing results from a single
+        worker, i.e. for a single orbit.
         """
 
         if tmpfile is None:
-            logger.debug("Tempfile is None")
+            logger.error("Temporary cache filename is None! Something went "
+                         "horribly wrong...")
             return
 
+        # Load the results from the
         with open(tmpfile,'rb') as f:
             result = pickle.load(f)
-        os.remove(tmpfile)
+        os.remove(tmpfile) # remove the file as soon as we load it
 
-        logger.debug("Flushing {0} to output array...".format(result['index']))
-        memmap = np.memmap(self.cache_file, mode='r+',
-                           dtype=self.cache_dtype, shape=(len(self.w0),))
-        if result['error_code'] != 0.:
-            logger.error("Error code = {0}".format(result['error_code']))
-            # error happened
-            for key in memmap.dtype.names:
-                if key in result:
-                    memmap[key][result['index']] = result[key]
+        logger.debug("Writing orbit {0} results to cache file..."
+                     .format(result['index']))
 
-        else:
-            # all is well
-            for key in memmap.dtype.names:
-                memmap[key][result['index']] = result[key]
-
-        # flush to output array
-        memmap.flush()
-        logger.debug("...flushed, washing hands.")
+        # row index
+        i = result['index']
+        with h5py.File(self.cache_file, 'a') as f:
+            g = f[self.name]
+            g[i] = result['row']
 
         del result
-        del memmap
 
     def __call__(self, index):
         logger.info("Orbit {0}".format(index))
@@ -182,7 +214,3 @@ class Experiment(object):
                 n = (d['error_code'] == ecode).sum()
                 logger.info("\t({0}) {1}: {2}".format(ecode,
                                                       error_codes[ecode], n))
-
-    @abstractclassmethod
-    def run(cls, w0, potential, **kwargs):
-        """ (classmethod) Run the experiment on a single orbit """

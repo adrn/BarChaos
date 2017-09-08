@@ -51,33 +51,24 @@ class FreqMap(Experiment):
 
     config = Config()
 
-    @classmethod
-    def run(cls, w0, potential, **kwargs):
-        c = dict()
-        for k in cls.config_defaults.keys():
-            if k not in kwargs:
-                c[k] = cls.config_defaults[k]
-            else:
-                c[k] = kwargs[k]
+    # TODO: eek, this might be borked because I changed it from a classmethod...
+    def run(self, w0, potential, **kwargs):
+        c = self.config
 
         # return dict
-        result = dict()
+        result = self._empty_result
 
         # get timestep and nsteps for integration
         try:
-            dt, nsteps = estimate_dt_nsteps(w0.copy(), potential,
-                                            c['nperiods'],
-                                            c['nsteps_per_period'])
+            dt, nsteps = estimate_dt_n_steps(w0.copy(), potential,
+                                             c['n_periods'],
+                                             c['n_steps_per_period'])
         except RuntimeError:
-            logger.warning("Failed to integrate orbit when estimating dt,nsteps")
-            result['freqs'] = np.ones((2,3))*np.nan
-            result['success'] = False
+            logger.warning("Failed to estimate dt, nsteps")
             result['error_code'] = 1
             return result
         except:
             logger.warning("Unexpected failure!")
-            result['freqs'] = np.ones((2,3))*np.nan
-            result['success'] = False
             result['error_code'] = 4
             return result
 
