@@ -12,6 +12,9 @@ dependencies:
   - scipy
   - jupyter
   - notebook
+  - h5py
   - pip:
     - git+https://github.com/adrn/gala
     - git+https://github.com/adrn/superfreq
+    - schwimmbad
+    - mpi4py
