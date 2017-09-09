@@ -18,3 +18,4 @@ dependencies:
     - git+https://github.com/adrn/superfreq
     - schwimmbad
     - mpi4py
+    - ruamel.yaml
