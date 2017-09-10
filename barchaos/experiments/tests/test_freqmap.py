@@ -27,5 +27,7 @@ def test_freqmap(cache_file):
     exp = FreqMap(cache_file)
 
     with FreqMap(cache_file) as exp:
+        tmpfile = exp(0)
+        exp.callback(tmpfile)
+
         exp.status()
-        print(exp._empty_result)

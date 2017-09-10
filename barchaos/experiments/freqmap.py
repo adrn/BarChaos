@@ -6,7 +6,6 @@
 import numpy as np
 import gala.integrate as gi
 import gala.coordinates as gc
-import gala.dynamics as gd
 from gala.dynamics.util import estimate_dt_n_steps
 from superfreq import SuperFreq
 
@@ -14,10 +13,13 @@ from superfreq import SuperFreq
 from ..config import ConfigNamespace, ConfigItem
 from ..log import logger
 from .base import Experiment
+from .util import orbit_to_poincare_polar
 
 __all__ = ['FreqMap']
 
 class Config(ConfigNamespace):
+    name = "freqmap"
+
     energy_tolerance = ConfigItem(
         1E-8, "Maximum allowed fractional energy difference")
 
@@ -52,7 +54,7 @@ class FreqMap(Experiment):
     config = Config()
 
     # TODO: eek, this might be borked because I changed it from a classmethod...
-    def run(self, w0, potential, **kwargs):
+    def run(self, w0, H):
         c = self.config
 
         # return dict
@@ -60,24 +62,23 @@ class FreqMap(Experiment):
 
         # get timestep and nsteps for integration
         try:
-            dt, nsteps = estimate_dt_n_steps(w0.copy(), potential,
-                                             c['n_periods'],
-                                             c['n_steps_per_period'])
+            dt, nsteps = estimate_dt_n_steps(
+                w0, H, n_periods=c.n_periods,
+                n_steps_per_period=c.n_steps_per_period,
+                func=np.nanmin, Integrator=gi.DOPRI853Integrator)
         except RuntimeError:
-            logger.warning("Failed to estimate dt, nsteps")
-            result['error_code'] = 1
+            result['error_code'] = 2
             return result
         except:
-            logger.warning("Unexpected failure!")
-            result['error_code'] = 4
+            result['error_code'] = 9
             return result
 
         # integrate orbit
         logger.debug("Integrating orbit with dt={0}, nsteps={1}".format(dt, nsteps))
         try:
-            t,ws = potential.integrate_orbit(w0.copy(), dt=dt, nsteps=nsteps,
-                                             Integrator=gi.DOPRI853Integrator,
-                                             Integrator_kwargs=dict(atol=1E-11))
+            orbit = H.integrate_orbit(w0, dt=dt, n_steps=nsteps,
+                                      Integrator=gi.DOPRI853Integrator,
+                                      Integrator_kwargs=dict(atol=1E-11))
         except RuntimeError: # ODE integration failed
             logger.warning("Orbit integration failed.")
             dEmax = 1E10
@@ -85,50 +86,47 @@ class FreqMap(Experiment):
             logger.debug('Orbit integrated successfully, checking energy conservation...')
 
             # check energy conservation for the orbit
-            E = potential.total_energy(ws[:,0,:3].copy(), ws[:,0,3:].copy())
-            dE = np.abs(E[1:] - E[0])
-            dEmax = dE.max() / np.abs(E[0])
+            E = orbit.energy()
+            dEmax = np.max(np.abs((E[1:] - E[0])/E[0]))
             logger.debug('max(∆E) = {0:.2e}'.format(dEmax))
 
-        if dEmax > c['energy_tolerance']:
-            logger.warning("Failed due to energy conservation check.")
-            result['freqs'] = np.ones((2,3))*np.nan
-            result['success'] = False
-            result['error_code'] = 2
+        if dEmax > c.energy_tolerance:
+            result['error_code'] = 4
             result['dE_max'] = dEmax
             return result
 
         # start finding the frequencies -- do first half then second half
-        sf1 = SuperFreq(t[:nsteps//2+1], p=c['hamming_p'])
-        sf2 = SuperFreq(t[nsteps//2:], p=c['hamming_p'])
+        sf1 = SuperFreq(orbit.t[:nsteps//2+1].value, p=c.hamming_p)
+        sf2 = SuperFreq(orbit.t[nsteps//2:].value, p=c.hamming_p)
 
         # classify orbit full orbit
-        circ = gd.classify_orbit(ws)
+        circ = orbit.circulation()
         is_tube = np.any(circ)
 
         # define slices for first and second parts
         sl1 = slice(None,nsteps//2+1)
         sl2 = slice(nsteps//2,None)
 
-        if is_tube and not c['force_cartesian']:
+        if is_tube and not c.force_cartesian:
             # first need to flip coordinates so that circulation is around z axis
-            new_ws = gd.align_circulation_with_z(ws, circ)
-            new_ws = gc.cartesian_to_poincare_polar(new_ws)
-            fs1 = [(new_ws[sl1,j] + 1j*new_ws[sl1,j+3]) for j in range(3)]
-            fs2 = [(new_ws[sl2,j] + 1j*new_ws[sl2,j+3]) for j in range(3)]
+            new_orbit = orbit.align_circulation_with_z(circ)
+            print(orbit[sl1].shape, new_orbit[sl1].shape)
+            fs1 = orbit_to_poincare_polar(new_orbit[sl1])
+            fs2 = orbit_to_poincare_polar(new_orbit[sl2])
 
         else:  # box
-            fs1 = [(ws[sl1,0,j] + 1j*ws[sl1,0,j+3]) for j in range(3)]
-            fs2 = [(ws[sl2,0,j] + 1j*ws[sl2,0,j+3]) for j in range(3)]
+            ws = orbit.w()
+            fs1 = [(ws[j,sl1] + 1j*ws[j+3,sl1]) for j in range(3)]
+            fs2 = [(ws[j,sl2] + 1j*ws[j+3,sl2]) for j in range(3)]
 
         logger.debug("Running SuperFreq on the orbits")
         try:
-            freqs1,d1,ixs1 = sf1.find_fundamental_frequencies(fs1, nintvec=c['nintvec'])
-            freqs2,d2,ixs2 = sf2.find_fundamental_frequencies(fs2, nintvec=c['nintvec'])
+            freqs1,d1,ixs1 = sf1.find_fundamental_frequencies(
+                fs1, nintvec=c.n_intvec)
+            freqs2,d2,ixs2 = sf2.find_fundamental_frequencies(
+                fs2, nintvec=c.n_intvec)
         except:
-            result['freqs'] = np.ones((2,3))*np.nan
-            result['success'] = False
-            result['error_code'] = 3
+            result['error_code'] = 5
             return result
 
         result['freqs'] = np.vstack((freqs1, freqs2))
@@ -138,5 +136,5 @@ class FreqMap(Experiment):
         result['nsteps'] = nsteps
         result['amps'] = np.vstack((d1['|A|'][ixs1], d2['|A|'][ixs2]))
         result['success'] = True
-        result['error_code'] = 0
+        result['error_code'] = 1
         return result
