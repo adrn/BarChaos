@@ -7,5 +7,5 @@ error_codes = {
     3: "Failed to integrate orbit",
     4: "Energy conservation criteria not met",
     5: "SuperFreq failed on find_fundamental_frequencies()",
-    6: "Unexpected failure"
+    9: "Unexpected failure"
 }
