@@ -166,6 +166,9 @@ class ConfigNamespace(object, metaclass=_ConfigNamespaceMeta):
             Path to the filename to save to.
         """
 
+        if filename is None:
+            return
+
         with open(filename, 'r') as f:
             dict_ = yaml.load(f, yaml.RoundTripLoader)
 
