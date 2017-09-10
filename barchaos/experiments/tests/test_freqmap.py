@@ -4,6 +4,7 @@ import pytest
 import gala.dynamics as gd
 import numpy as np
 import h5py
+import schwimmbad
 
 # Package
 from ..freqmap import FreqMap
@@ -31,3 +32,12 @@ def test_freqmap(cache_file):
         exp.callback(tmpfile)
 
         exp.status()
+
+def test_freqmap_multi(cache_file):
+
+    with FreqMap(cache_file) as exp:
+        with schwimmbad.MultiPool() as pool:
+            pool.map(exp, list(range(16)), callback=exp.callback)
+
+        exp.status()
+
