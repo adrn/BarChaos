@@ -14,6 +14,7 @@ import gala.dynamics as gd
 
 # Project
 from ..log import logger
+from ..potential import get_hamiltonian
 from .error import error_codes
 
 __all__ = ['Experiment']
@@ -44,8 +45,8 @@ class Experiment(object):
         self._cache_path = path.dirname(self.cache_file)
 
         # Load the configuraton settings for this experiment
-        if config_file is not None:
-            self.config.load(config_file)
+        self.config_file = config_file
+        self.config.load(self.config_file)
 
         # Load initial conditions
         with h5py.File(self.cache_file) as f:
@@ -150,46 +151,47 @@ class Experiment(object):
 
         # Load the results from the
         with open(tmpfile,'rb') as f:
-            result = pickle.load(f)
+            index, result = pickle.load(f)
         os.remove(tmpfile) # remove the file as soon as we load it
 
         logger.debug("Writing orbit {0} results to cache file..."
-                     .format(result['index']))
+                     .format(index))
 
         # row index
-        i = result['index']
         with h5py.File(self.cache_file, 'a') as f:
             g = f[self.name]
-            g[i] = result['row']
+            g[index] = result
 
         del result
 
     def __call__(self, index):
         logger.info("Orbit {0}".format(index))
 
-        # unpack input argument dictionary
-        import gary.potential as gp
-        potential = gp.load(path.join(self.cache_path, self.config.potential_filename))
+        # Read the results for just this orbit
+        with h5py.File(self.cache_file, 'r') as f:
+            g = f[self.name]
+            error_code = g[index]['error_code']
 
-        # read out just this initial condition
-        norbits = len(self.w0)
-        allfreqs = np.memmap(self.cache_file, mode='r',
-                             shape=(norbits,), dtype=self.cache_dtype)
-
-        # short-circuit if this orbit is already done
-        if allfreqs['success'][index]:
-            logger.debug("Orbit {0} already successfully completed.".format(index))
+        # Short-circuit if this orbit is already done
+        if not self.overwrite and error_code > 0:
+            logger.debug("Orbit {0} already completed.".format(index))
             return None
 
+        # Load the Hamiltonian object to use to integrate orbits
+        H = get_hamiltonian(self.config_file)
+
         # Only pass in things specified in _run_kwargs (w0 and potential required)
-        kwargs = dict([(k,self.config[k]) for k in self.config.keys() if k in self._run_kwargs])
-        res = self.run(w0=self.w0[index], potential=potential, **kwargs)
-        res['index'] = index
+        # kwargs = dict([(k,self.config[k])
+        #                for k in self.config.keys() if k in self._run_kwargs])
+        res = self.run(w0=self.w0[index], H=H)
+
+        if res['error_code'] > 1:
+            logger.warning(error_codes[res['error_code'][0]])
 
         # cache res into a tempfile, return name of tempfile
         tmpfile = path.join(self._tmpdir, "{0}-{1}.pickle".format(self.__class__.__name__, index))
         with open(tmpfile, 'wb') as f:
-            pickle.dump(res, f)
+            pickle.dump((index, res), f)
         return tmpfile
 
     def status(self):
