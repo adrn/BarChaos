@@ -107,7 +107,6 @@ class FreqMap(Experiment):
         if is_tube and not c.force_cartesian:
             # first need to flip coordinates so that circulation is around z axis
             new_orbit = orbit.align_circulation_with_z(circ)
-            print(orbit[sl1].shape, new_orbit[sl1].shape)
             fs1 = orbit_to_poincare_polar(new_orbit[sl1])
             fs2 = orbit_to_poincare_polar(new_orbit[sl2])
 
