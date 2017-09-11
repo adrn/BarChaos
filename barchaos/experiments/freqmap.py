@@ -1,11 +1,8 @@
 # coding: utf-8
 
-# Standard library
-
 # Third-party
 import numpy as np
 import gala.integrate as gi
-import gala.coordinates as gc
 from gala.dynamics.util import estimate_dt_n_steps
 from superfreq import SuperFreq
 
