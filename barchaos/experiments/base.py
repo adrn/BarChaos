@@ -144,9 +144,7 @@ class Experiment(object):
         worker, i.e. for a single orbit.
         """
 
-        if tmpfile is None:
-            logger.error("Temporary cache filename is None! Something went "
-                         "horribly wrong...")
+        if tmpfile is None: # orbit already done
             return
 
         # Load the results from the

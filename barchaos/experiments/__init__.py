@@ -1,1 +1,1 @@
-from .base import Experiment
+from .freqmap import FreqMap
