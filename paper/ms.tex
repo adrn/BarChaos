@@ -26,7 +26,7 @@
 
 \begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing % trust me
 
-\title{Science stuff}
+\title{Chaos in the inner halo from the Galactic bar}
 
 \author[0000-0003-0872-7098]{Adrian~M.~Price-Whelan}
 \affiliation{Department of Astrophysical Sciences,
@@ -52,19 +52,56 @@
 \end{abstract}
 
 \keywords{
-    binaries: spectroscopic
+    whatever: whatever
     ---
-    whatever
 }
 
-\section{Introduction}
-\label{sec:introduction}
+\section{Introduction} \label{sec:intro}
 
-\section{Methods}
-\label{sec:methods}
+Milky Way has a bar
 
-\section{Data}
-\label{sec:data}
+Bar known to create chaotic orbits
+
+Bar has been shown to affect streams
+
+What fraction of inner halo orbits are strongly chaotic?
+Does this erase substructure?
+
+\section{Methods} \label{sec:methods}
+
+\subsection{Gravitational potential of the Milky Way} \label{sec:potential}
+
+Use bar model G2 from Dwek 1995 with truncation at corotation radius,
+explain $f(\bs{r})$
+
+Basis function expansion, similar to Wang 2012, taken to higher order, but we
+compute the expansion for different pattern speeds -> corotation radii.
+
+Use a grid of pattern speeds from 30--60~$\kmskpc$.
+
+\subsection{Orbit integration} \label{sec:orbit-int}
+
+TODO
+
+\subsection{Chaos indicator and frequency diffusion rate} \label{sec:freqdiff}
+
+TODO
+
+\section{Results} \label{sec:results}
+
+\subsection{Orbit structure: grids at constant Jacobi energy}
+
+TODO: frequency maps and frequency diffusion rates
+
+\subsection{Orbit structure: sampling from embedded DFs}
+
+Vary anisotropy of DF
+
+How many strongly chaotic orbits as a function of bar mass, pattern speed?
+
+\subsection{Mixing of substrcture}
+
+Timescale for a globular cluster-like clump of debris to phase-mix?
 
 \acknowledgements
 
@@ -76,26 +113,27 @@ The code used in this project is available from
 software license.
 This research utilized the following open-source \python\ packages:
     \package{Astropy} (\citealt{Astropy-Collaboration:2013}),
-    \package{astroquery} (\citealt{Ginsburg:2016}),
-    \package{ccdproc} (\citealt{Craig:2015}),
-    \package{celerite} (\citealt{Foreman-Mackey:2017}),
-    \package{corner} (\citealt{Foreman-Mackey:2016}),
-    \package{emcee} (\citealt{Foreman-Mackey:2013ascl}),
+    % \package{astroquery} (\citealt{Ginsburg:2016}),
+    % \package{ccdproc} (\citealt{Craig:2015}),
+    % \package{celerite} (\citealt{Foreman-Mackey:2017}),
+    % \package{corner} (\citealt{Foreman-Mackey:2016}),
+    % \package{emcee} (\citealt{Foreman-Mackey:2013ascl}),
     \package{IPython} (\citealt{Perez:2007}),
     \package{matplotlib} (\citealt{Hunter:2007}),
     \package{numpy} (\citealt{Van-der-Walt:2011}),
     \package{scipy} (\url{https://www.scipy.org/}),
-    \package{sqlalchemy} (\url{https://www.sqlalchemy.org/}).
-This work additionally used the Gaia science archive
-(\url{https://gea.esac.esa.int/archive/}), and the SIMBAD database
-(\citealt{Wenger:2000}).
+    \todo{schwimmbad, gala, superfreq}
+    % \package{sqlalchemy} (\url{https://www.sqlalchemy.org/}).
+% This work additionally used the Gaia science archive
+% (\url{https://gea.esac.esa.int/archive/}), and the SIMBAD database
+% (\citealt{Wenger:2000}).
 }
 
 % \facility{MDM: Hiltner (Modspec)}
 
-\appendix
+% \appendix
 
-\section{Some extra stuff} % \label{appdx:}
+% \section{Some extra stuff} % \label{appdx:}
 
 \clearpage
 \bibliographystyle{aasjournal}
