@@ -69,13 +69,32 @@ Does this erase substructure?
 
 \section{Methods} \label{sec:methods}
 
-\subsection{Gravitational potential of the Milky Way} \label{sec:potential}
+\subsection{Mass model of the Milky Way} \label{sec:potential}
 
-Use bar model G2 from Dwek 1995 with truncation at corotation radius,
-explain $f(\bs{r})$
+We use a multi-component mass model to represent the mass distribution of the
+Milky Way to account for the stellar disk, dark matter halo, and bar/bulge of
+our Galaxy.
+\todo{disk, halo}
+To represent the Galactic bar, we use a triaxial, Gaussian density
+distribution truncated at the corotation radius for a given bar pattern speed.
+This model (model G2 in \citealt{Dwek:1995}) has been shown to match
+\todo{DIRBE, whatever Wang does} (\citealt{Dwek:1995,Wang:2012}).
 
-Basis function expansion, similar to Wang 2012, taken to higher order, but we
-compute the expansion for different pattern speeds -> corotation radii.
+$R_{\rm max}$ is the bar truncation radius
+
+This density distribution does not have an analytic potential expression, so
+we instead use a basis function expansion to represent the density and
+potential, and compute forces from this component (as is done in, e.g.,
+\citealt{Wang:2012}).
+We use the self-consistent field (SCF) expansion formalism
+(\citealt{Hernquist:1992}) to compute the expansion coefficients and truncate
+the expansion at $n=6$, $l=6$.
+We find that with this expansion, the force errors in the volume $0.1~\kpc < r
+30~\kpc$ are typically $<1\%$, where $r$ is the Galactocentric radius.
+
+We compute a different set of expansion coefficients for each bar pattern speed
+used in this work because this determines the corotation radius and therefore
+sets the truncation radius of the bar.
 
 Use a grid of pattern speeds from 30--60~$\kmskpc$.
 
