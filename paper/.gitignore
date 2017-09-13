@@ -1,0 +1,13 @@
+# Latex
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.out
+*.synctex.gz
+ms.pdf
+*Notes.bib
+gitstuff.tex
+*.pdf
+*.hdf5
