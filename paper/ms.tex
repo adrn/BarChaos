@@ -24,6 +24,8 @@
 % \definecolor{linkcolor}{rgb}{0.02,0.35,0.55}
 % \definecolor{citecolor}{rgb}{0.4,0.4,0.4}
 
+\newcommand{\Rcor}{\ensuremath{R_{\rm co}}}
+
 \begin{document}\sloppy\sloppypar\raggedbottom\frenchspacing % trust me
 
 \title{Chaos in the inner halo from the Galactic bar}
@@ -92,38 +94,66 @@ Does this erase substructure?
 
 \subsection{Mass model of the Milky Way} \label{sec:potential}
 
-We use a multi-component mass model to represent the mass distribution of the
-Milky Way to account for the stellar disk, dark matter halo, and bar/bulge of
-our Galaxy.
+We use a multi-component mass model for the mass distribution of the Milky Way
+that accounts for the stellar disk, dark matter halo, and bar/bulge.
 \todo{disk, halo}
-To represent the Galactic bar, we use a triaxial, Gaussian density
-distribution truncated at the corotation radius for a given bar pattern speed.
-This model (model G2 in \citealt{Dwek:1995}) has been shown to match
-\todo{DIRBE, whatever Wang does} (\citealt{Dwek:1995,Wang:2012}).
 
-$R_{\rm max}$ is the bar truncation radius
-
-This density distribution does not have an analytic potential expression, so
+For the Galactic bar component, we use a triaxial, Gaussian density
+distribution (model G2 in \citealt{Dwek:1995})
+\begin{eqnarray}
+    \rho(\bs{x}) &=& \rho_0 \, \exp\left(-r_1^2 / 2 \right)\\
+    r_1 &=& \left[\left\{(x/x_0)^2 + (y/y_0)^2\right\}^2 + (z/z_0)^4 \right]^{1/4} \quad .
+\end{eqnarray}
+This model has been shown to match the projected surface-brightness of the bulge
+region (\citealt{Dwek:1995}) and velocity and velocity dispersion measurements
+of the bulge from the \acronym{BRAVA} survey (\citealt{Kunder:2012,Wang:2012}).
+Following the original model (\citealt{Dwek:1995}), given a pattern speed, we
+truncate the bar model at the corotation radius, \Rcor, using a function of
+cylindrical radius $R = \sqrt{x^2 + y^2}$
+\begin{equation}
+    f(R) =
+    \begin{cases}
+        1 & R < \Rcor \\
+        \exp\left(-R^2/R_0^2\right) & R \geq \Rcor
+    \end{cases}\label{eq:truncfunc}
+\end{equation}
+with $R_0 = 0.5~\kpc$.
+This density distribution does not have an analytic potential expression;
 we instead use a basis function expansion to represent the density and
 potential, and compute forces from this component (as is done in, e.g.,
 \citealt{Wang:2012}).
 We use the self-consistent field (SCF) expansion formalism
 (\citealt{Hernquist:1992}) to compute the expansion coefficients and truncate
 the expansion at $n=6$, $l=6$.
-We find that with this expansion, the force errors in the volume $0.1~\kpc < r
+We find that with this expansion, the force errors in the volume $0.1~\kpc < r <
 30~\kpc$ are typically $<1\%$, where $r$ is the Galactocentric radius.
+\todo{double check this}
 
-We compute a different set of expansion coefficients for each bar pattern speed
-used in this work because this determines the corotation radius and therefore
-sets the truncation radius of the bar.
-
-Use a grid of pattern speeds from 30--60~$\kmskpc$.
+In the experiments below, we consider a grid of pattern speeds $\Omega_{\rm b} =
+\left[ 30, 40, 50, 60 \right]~\kmskpc$.
+We compute a different set of expansion coefficients for each bar pattern speed:
+the pattern speed sets the corotation and therefore truncation radius
+(\eqname~\ref{eq:truncfunc}) of the bar model.
 
 \subsection{Orbit integration} \label{sec:orbit-int}
 
-TODO
+We use an 8th-order Runge-Kutta scheme to integrate orbits in the above mass
+model (the Dormand-Prince method; \citealt{Dormand:1980})
+In detail, we use a \python\ wrapper of a \texttt{C} implementation
+(\citealt{Hairer:1993}) that is implemented in the \package{Gala} package
+(\citealt{Gala}).
+For all orbits we adjust the timestep until the Jacobi energy is conserved to at
+least $|\Delta E/E_0| \leq 10^{-8}$ by the end of integration, but most regular
+orbits conserve energy at machine precision ($|\Delta E/E_0| \leq 10^{-15}$).
 
-\subsection{Chaos indicator and frequency diffusion rate} \label{sec:freqdiff}
+\todo{Timestep stuff...}
+Unless otherwise specified the integration timesteps are
+chosen so that there are 512 steps per strongest orbital period component, but
+the integrator uses adaptive stepping between each main step in order to satisfy
+a specified tolerance (we set the absolute tolerance to $\approx$100 times
+machine precision, $\texttt{atol} = 10^{-13}$).
+
+\subsection{Frequency estimation and diffusion rate} \label{sec:freqdiff}
 
 TODO
 
