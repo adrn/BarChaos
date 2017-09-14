@@ -13,6 +13,11 @@ else:
 builtins.__BARCHAOS_SETUP__ = True
 import barchaos
 
+pkg_data = dict()
+pkg_data["barchaos"] = ["README.md", "LICENSE"]
+pkg_data["barchaos.potential"] = ["data/README.md",
+                                  "data/coeffs.hdf5"]
+
 setup(
     name="barchaos",
     version=barchaos.__version__,
@@ -22,7 +27,7 @@ setup(
     packages=["barchaos", "barchaos.experiments", "barchaos.potential"],
     description="",
     long_description=open("README.md").read(),
-    package_data={"": ["README.md", "LICENSE"]},
+    package_data=pkg_data,
     include_package_data=True,
     install_requires=["astropy", "numpy", "matplotlib"],
 )
