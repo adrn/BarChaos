@@ -15,6 +15,7 @@ dependencies:
   - h5py
   - pip:
     - git+https://github.com/adrn/gala
+    - git+https://github.com/adrn/biff
     - git+https://github.com/adrn/superfreq
     - schwimmbad
     - mpi4py
