@@ -19,7 +19,7 @@ setup(
     author="Adrian Price-Whelan",
     author_email="adrianmpw@gmail.com",
     url="https://github.com/adrn/BarChaos",
-    packages=["barchaos", "barchaos.experiments"],
+    packages=["barchaos", "barchaos.experiments", "barchaos.potential"],
     description="",
     long_description=open("README.md").read(),
     package_data={"": ["README.md", "LICENSE"]},
