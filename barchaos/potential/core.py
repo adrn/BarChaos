@@ -10,7 +10,7 @@ from gala.units import galactic
 # Project
 from .config import ConfigNamespace, ConfigItem
 
-__all__ = ['get_hamiltonian']
+__all__ = ['Config', 'get_hamiltonian']
 
 class Config(ConfigNamespace):
     name = "potential"
