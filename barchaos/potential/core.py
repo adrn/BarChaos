@@ -17,7 +17,7 @@ from ..log import logger
 from ..config import ConfigNamespace, ConfigItem
 from .bfe import get_scf_coeffs
 
-__all__ = ['Config', 'get_hamiltonian']
+__all__ = ['Config', 'get_hamiltonian', 'get_bar_potential']
 
 class Config(ConfigNamespace):
     name = "potential"
@@ -49,8 +49,8 @@ def get_hamiltonian(config_file=None):
     c = Config()
     c.load(config_file)
 
-    # TODO: this is just temporary...I need to decide on a better potential
-    pot = gp.MilkyWayPotential()
+    pot = potential_no_bar.copy()
+    pot['bar'] = get_bar_potential(config_file)
 
     Om = [0., 0., c.Omega]*u.km/u.s/u.kpc
     frame = gp.ConstantRotatingFrame(Omega=Om, units=galactic)
@@ -72,7 +72,11 @@ def get_bar_potential(config_file=None):
     with h5py.File(coeffs_filename, 'a') as f:
         if hash_key in f:
             logger.debug("Loading cached expansion coefficients")
-            return np.array(f[hash_key][:])
+
+            S = np.array(f[hash_key][:])
+            return bscf.SCFPotential(m=c.bar_mass, r_s=1.,
+                                     Snlm=S, Tnlm=np.zeros_like(S),
+                                     units=galactic)
 
         elif fiducial_hash_key in f:
             fiducial_coeffs = np.array(f[fiducial_hash_key][:])
