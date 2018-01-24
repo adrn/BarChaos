@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--experiment', dest='experiment', required=True,
                         type=str, help='The name of the experiment class to '
                                        'execute.')
-    parser.add_argument('--cache', dest='cache_file', default=None,
+    parser.add_argument('--cache', dest='cache_file', required=True,
                         type=str, help='Path to the cache file.')
     parser.add_argument('--config', dest='config_file', default=None,
                         type=str, help='Path to a configuration file.')
@@ -71,4 +71,3 @@ if __name__ == "__main__":
         exp.status()
 
     pool.close()
-
